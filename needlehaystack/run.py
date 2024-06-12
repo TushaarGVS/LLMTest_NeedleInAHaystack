@@ -6,7 +6,7 @@ from jsonargparse import CLI
 
 from . import LLMNeedleHaystackTester, LLMMultiNeedleHaystackTester
 from .evaluators import Evaluator, LangSmithEvaluator, OpenAIEvaluator
-from .providers import Anthropic, ModelProvider, OpenAI, Cohere
+from .providers import Anthropic, ModelProvider, OpenAI, Cohere, RecurrentGemma
 
 load_dotenv()
 
@@ -65,6 +65,9 @@ def get_model_to_test(args: CommandArgs) -> ModelProvider:
             return Anthropic(model_name=args.model_name)
         case "cohere":
             return Cohere(model_name=args.model_name)
+        case "recurrentgemma":
+            # model_name: ["2b", "2b-it", "9b", "9b-it"]
+            return RecurrentGemma(model_name=args.model_name)
         case _:
             raise ValueError(f"Invalid provider: {args.provider}")
 

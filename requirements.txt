@@ -30,7 +30,7 @@ langchain_cohere
 marshmallow==3.20.1
 multidict==6.0.4
 mypy-extensions==1.0.0
-numpy==1.26.2
+numpy~=1.26.4
 openai>=1.3.5
 packaging==23.2
 pydantic==2.5.2
@@ -50,3 +50,8 @@ typing_extensions==4.8.0
 urllib3==2.1.0
 yarl==1.9.3
 pytest==8.1.1
+setuptools~=70.0.0
+kagglehub~=0.2.6
+recurrentgemma @ git+https://github.com/TushaarGVS/recurrentgemma-xai@xai
+sentencepiece~=0.2.0
+torch~=2.3.1
