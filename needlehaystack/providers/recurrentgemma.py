@@ -14,10 +14,15 @@ class RecurrentGemma(ModelProvider):
     def __init__(
         self,
         model_name: Literal["2b", "2b-it", "9b", "9b-it"] = "9b-it",
+        debug: bool = True,
         **model_kwargs: Any,
     ):
+        self.debug = debug
+
         assert model_name in ["2b", "2b-it", "9b", "9b-it"]
         self.model_name = model_name
+        if self.debug:
+            print(f"[DEBUG] loading recurrentgemma-{model_name} ...")
 
         self.__set_model_default_kwargs()
         for key, value in model_kwargs.items():
@@ -36,10 +41,13 @@ class RecurrentGemma(ModelProvider):
             is_it_model=("it" in model_name),
             greedy_sampling=self.greedy_sampling,
         )
+        if self.debug:
+            print(f"[DEBUG] recurrentgemma-{model_name} loaded")
+            print(f"[DEBUG] model config:\n{self.model.config}")
 
     def __set_model_default_kwargs(self):
         self.greedy_sampling = True
-        self.max_tokens = 30
+        self.max_tokens = 50
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
     @staticmethod
@@ -70,7 +78,7 @@ class RecurrentGemma(ModelProvider):
         return model
 
     def generate_prompt(self, context: str, retrieval_question: str) -> str:
-        return f"""<start_of_turn>user
+        prompt = f"""<start_of_turn>user
         You are a helpful AI bot that answers questions for a user. Keep your response short and direct.
         
         {context}
@@ -80,12 +88,18 @@ class RecurrentGemma(ModelProvider):
         Don't give information outside the document or repeat your findings.<end_of_turn>
         <start_of_turn>model
         """
+        if self.debug:
+            print(f"[DEBUG] prompt: {prompt}")
+        return prompt
 
     async def evaluate_model(self, prompt: str) -> str:
-        model_response = self.sampler(
+        model_output = self.sampler(
             input_strings=[prompt], total_generation_steps=self.max_tokens
         )
-        return model_response.text[0]
+        model_response = model_output.text[0]
+        if self.debug:
+            print(f"[DEBUG] model response: {model_response}")
+        return model_response
 
     def encode_text_to_tokens(self, text: str) -> list[int]:
         return self.sampler.tokenize(input_string=text).tolist()

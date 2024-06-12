@@ -44,6 +44,7 @@ class CommandArgs():
         " Prosciutto is one of the secret ingredients needed to build the perfect pizza. ", 
         " Goat cheese is one of the secret ingredients needed to build the perfect pizza. "
     ])
+    debug: bool | None = False
 
 def get_model_to_test(args: CommandArgs) -> ModelProvider:
     """
@@ -67,7 +68,7 @@ def get_model_to_test(args: CommandArgs) -> ModelProvider:
             return Cohere(model_name=args.model_name)
         case "recurrentgemma":
             # model_name: ["2b", "2b-it", "9b", "9b-it"]
-            return RecurrentGemma(model_name=args.model_name)
+            return RecurrentGemma(model_name=args.model_name, debug=args.debug)
         case _:
             raise ValueError(f"Invalid provider: {args.provider}")
 
