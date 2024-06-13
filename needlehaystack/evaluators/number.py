@@ -13,10 +13,10 @@ class NumberEvaluator(Evaluator):
     def evaluate_response(self, response: str, **kwargs) -> int:
         true_number = kwargs["random_number"]
         numbers_in_model_response = [
-            float(s) for s in re.findall(r"[\d\.\d]+", response)
+            float(s) for s in re.findall(r"[-+]?\d*\.\d+|\d+", response)
         ]
         return int(
             len(numbers_in_model_response) == 1
             and numbers_in_model_response[0].is_integer()
-            and int(numbers_in_model_response[0]) == true_numberp
+            and int(numbers_in_model_response[0]) == true_number
         )
