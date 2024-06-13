@@ -45,7 +45,11 @@ class OpenAIEvaluator(Evaluator):
                                     openai_api_key=self.api_key,
                                     **self.model_kwargs)
 
-    def evaluate_response(self, response: str) -> int:
+    @property
+    def evaluator_type(self) -> str:
+        return "openai"
+
+    def evaluate_response(self, response: str, **kwargs) -> int:
         evaluator = load_evaluator(
             "labeled_score_string",
             criteria=self.CRITERIA,

@@ -2,6 +2,7 @@ import asyncio
 import glob
 import json
 import os
+import random
 import time
 from asyncio import Semaphore
 from datetime import datetime, timezone
@@ -85,6 +86,7 @@ class LLMNeedleHaystackTester:
         self.seconds_to_sleep_between_completions = seconds_to_sleep_between_completions
         self.print_ongoing_status = print_ongoing_status
         self.debug = debug
+        self.random_number = None  # only used in NumberEvaluator
         self.testing_results = []
 
         if context_lengths is None:
@@ -200,11 +202,13 @@ class LLMNeedleHaystackTester:
         test_end_time = time.time()
         test_elapsed_time = test_end_time - test_start_time
 
-        # Compare the reponse to the actual needle you placed
-        score = self.evaluation_model.evaluate_response(response)
+        # Compare the response to the actual needle you placed
+        score = self.evaluation_model.evaluate_response(
+            response, random_number=self.random_number
+        )
 
         results = {
-            # 'context' : context, # Uncomment this line if you'd like to save the context the model was asked to retrieve from. Warning: This will become very large.
+            "context": context if self.debug else "<NOT SAVED>",
             "model": self.model_name,
             "context_length": int(context_length),
             "depth_percent": float(depth_percent),
@@ -293,6 +297,11 @@ class LLMNeedleHaystackTester:
         return context
 
     def insert_needle(self, context, depth_percent, context_length):
+        if self.evaluation_model.evaluator_type == "number":
+            # Dynamically generate a needle using a random number to be inserted into the haystack.
+            self.random_number = random.randint(100000, 999999)
+            self.needle = f"\nThe magic number is {self.random_number}.\n"
+
         tokens_needle = self.model_to_test.encode_text_to_tokens(self.needle)
         tokens_context = self.model_to_test.encode_text_to_tokens(context)
 
@@ -362,7 +371,8 @@ class LLMNeedleHaystackTester:
         print(
             f"- Document Depths: {len(self.document_depth_percents)}, Min: {min(self.document_depth_percents)}%, Max: {max(self.document_depth_percents)}%"
         )
-        print(f"- Needle: {self.needle.strip()}")
+        if self.evaluation_model.evaluator_type != "number":
+            print(f"- Needle: {self.needle.strip()}")
         print("\n\n")
 
     def start_test(self):

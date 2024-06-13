@@ -4,8 +4,9 @@ from typing import Optional
 from dotenv import load_dotenv
 from jsonargparse import CLI
 
+from needlehaystack.evaluators.number import NumberEvaluator
 from . import LLMNeedleHaystackTester, LLMMultiNeedleHaystackTester
-from .evaluators import Evaluator, LangSmithEvaluator, OpenAIEvaluator
+from .evaluators import Evaluator, LangSmithEvaluator, OpenAIEvaluator, NumberEvaluator
 from .providers import Anthropic, ModelProvider, OpenAI, Cohere, RecurrentGemma
 
 load_dotenv()
@@ -68,7 +69,8 @@ def get_model_to_test(args: CommandArgs) -> ModelProvider:
             return Cohere(model_name=args.model_name)
         case "recurrentgemma":
             # model_name: ["2b", "2b-it", "9b", "9b-it"]
-            return RecurrentGemma(model_name=args.model_name, debug=args.debug)
+            # evaluator: ["openai", "langsmith", "number"]
+            return RecurrentGemma(model_name=args.model_name, evaluator_type=args.evaluator.lower(), debug=args.debug)
         case _:
             raise ValueError(f"Invalid provider: {args.provider}")
 
@@ -92,6 +94,8 @@ def get_evaluator(args: CommandArgs) -> Evaluator:
                                    true_answer=args.needle)
         case "langsmith":
             return LangSmithEvaluator()
+        case "number":
+            return NumberEvaluator()
         case _:
             raise ValueError(f"Invalid evaluator: {args.evaluator}")
 

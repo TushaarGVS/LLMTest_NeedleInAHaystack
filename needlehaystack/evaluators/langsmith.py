@@ -83,6 +83,10 @@ class LangSmithEvaluator():
     from a provided context (the "needle" in a "haystack").
     """
 
+    @property
+    def evaluator_type(self):
+        return "langsmith"
+
     def evaluate_chain(self, chain, context_length, depth_percent, model_name, eval_set, num_needles, needles, insertion_percentages):
         """
         Evaluates a language model's chain of operations, specifically focusing on the model's ability to 

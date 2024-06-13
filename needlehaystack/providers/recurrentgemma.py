@@ -13,7 +13,8 @@ from .model import ModelProvider
 class RecurrentGemma(ModelProvider):
     def __init__(
         self,
-        model_name: Literal["2b", "2b-it", "9b", "9b-it"] = "9b-it",
+        model_name: Literal["2b", "2b-it", "9b", "9b-it"],
+        evaluator_type: Literal["number", "openai", "langsmith"],
         debug: bool = True,
         **model_kwargs: Any,
     ):
@@ -21,7 +22,10 @@ class RecurrentGemma(ModelProvider):
 
         assert model_name in ["2b", "2b-it", "9b", "9b-it"]
         self.model_name = model_name
+        assert evaluator_type in ["number", "openai", "langsmith"]
+        self.evaluator_type = evaluator_type
         if self.debug:
+            print(f"[DEBUG] evaluator type: {evaluator_type}")
             print(f"[DEBUG] loading recurrentgemma-{model_name} ...")
 
         self.__set_model_default_kwargs()
@@ -35,10 +39,11 @@ class RecurrentGemma(ModelProvider):
 
         self.vocab = self._get_vocab_from_kaggle(weights_dir=weights_dir)
         self.model = self._get_recurrentgemma_from_kaggle(weights_dir=weights_dir)
+        # Always set `is_it_model=False`, to avoid adding special tokens; we'll add them explicitly.
         self.sampler = recurrentgemma.Sampler(
             model=self.model,
             vocab=self.vocab,
-            is_it_model=("it" in model_name),
+            is_it_model=False,
             greedy_sampling=self.greedy_sampling,
         )
         if self.debug:
@@ -78,16 +83,27 @@ class RecurrentGemma(ModelProvider):
         return model
 
     def generate_prompt(self, context: str, retrieval_question: str) -> str:
-        prompt = f"""<start_of_turn>user
-        You are a helpful AI bot that answers questions for a user. Keep your response short and direct.
-        
-        {context}
-        
-        {retrieval_question}
-        
-        Don't give information outside the document or repeat your findings.<end_of_turn>
-        <start_of_turn>model
-        """
+        if self.evaluator_type == "number":
+            prompt = f"""Some special magic number is hidden within the following articles. 
+            Make sure to memorize it. 
+            I will quiz you about the magic number afterwards.
+            
+            {context}
+            
+            Question: What is the special magic number mentioned in the provided text?
+            Answer: The special magic number mentioned in the provided text is 
+            """
+        else:
+            prompt = f"""You are a helpful AI bot that answers questions for a user.
+            Make sure to memorize the contents of the following articles. 
+            I will quiz you about the details in the articles afterwards.
+            
+            {context}
+
+            Question: {retrieval_question} Keep your response short and direct. Don't include information outside 
+            the articles or repeat your findings.
+            Answer: 
+            """
         if self.debug:
             print(f"[DEBUG] prompt: {prompt}")
         return prompt
