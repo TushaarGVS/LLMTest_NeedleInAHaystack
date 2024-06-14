@@ -1,0 +1,1 @@
+{"context": "<NOT SAVED>", "model": "2b-it", "context_length": 3584, "depth_percent": 100.0, "version": 1, "needle": "\nThe magic number is 181638.\n", "model_response": "181638.", "score": 1, "test_duration_seconds": 5.245187997817993, "test_timestamp_utc": "2024-06-13 13:51:34+0000", "file_name": "2b-it_len_3584_depth_10000"}
