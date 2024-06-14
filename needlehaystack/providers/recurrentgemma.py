@@ -90,7 +90,8 @@ class RecurrentGemma(ModelProvider):
             
             {context}
             
-            Question: What is the special magic number mentioned in the provided text?
+            Question: What is the special magic number mentioned in the provided text? Keep your response short and 
+            direct. Don't include information outside the articles or repeat your findings.
             Answer: The special magic number mentioned in the provided text is 
             """
         else:
