@@ -49,6 +49,7 @@ class CommandArgs:
             " Goat cheese is one of the secret ingredients needed to build the perfect pizza. ",
         ]
     )
+    num_trials: int | None = None
     debug: bool | None = False
 
 
@@ -122,6 +123,7 @@ def main():
     args = CLI(CommandArgs, as_positional=False)
     args.model_to_test = get_model_to_test(args)
     args.evaluator = get_evaluator(args)
+    num_trials = args.num_trials if args.num_trials is not None else 1
 
     if args.multi_needle == True:
         print("Testing multi-needle")
@@ -129,7 +131,9 @@ def main():
     else:
         print("Testing single-needle")
         tester = LLMNeedleHaystackTester(**args.__dict__)
-    tester.start_test()
+
+    for trial_num in range(num_trials):
+        tester.start_test(trial_num=trial_num)
 
 
 if __name__ == "__main__":

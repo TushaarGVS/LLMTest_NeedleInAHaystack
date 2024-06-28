@@ -261,7 +261,7 @@ class LLMMultiNeedleHaystackTester(LLMNeedleHaystackTester):
         print (f"- Needles: {self.needles}")
         print ("\n\n")
 
-    def start_test(self):
+    def start_test(self, trial_num: int = 1):
         if self.print_ongoing_status:
             self.print_start_test_summary()
         asyncio.run(self.run_test())

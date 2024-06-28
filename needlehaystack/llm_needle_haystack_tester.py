@@ -168,24 +168,24 @@ class LLMNeedleHaystackTester:
         async with sem:
             await self.evaluate_and_log(*args)
 
-    async def run_test(self):
+    async def run_test(self, trial_num: int = 1):
         sem = Semaphore(self.num_concurrent_requests)
 
         # Run through each iteration of context_lengths and depths
         tasks = []
         for context_length in self.context_lengths:
             for depth_percent in self.document_depth_percents:
-                task = self.bound_evaluate_and_log(sem, context_length, depth_percent)
+                task = self.bound_evaluate_and_log(sem, context_length, depth_percent, trial_num)
                 tasks.append(task)
 
         # Wait for all tasks to complete
         await asyncio.gather(*tasks)
 
-    async def evaluate_and_log(self, context_length, depth_percent):
+    async def evaluate_and_log(self, context_length, depth_percent, trial_num):
         # Checks to see if you've already checked a length/percent/version.
         # This helps if the program stop running and you want to restart later
         if self.save_results:
-            if self.result_exists(context_length, depth_percent):
+            if self.result_exists(context_length, depth_percent, trial_num):
                 return
 
         # Go generate the required length context and place your needle statement in
@@ -220,6 +220,7 @@ class LLMNeedleHaystackTester:
             "test_timestamp_utc": datetime.now(timezone.utc).strftime(
                 "%Y-%m-%d %H:%M:%S%z"
             ),
+            "trial_num": trial_num,
         }
 
         self.testing_results.append(results)
@@ -232,7 +233,7 @@ class LLMNeedleHaystackTester:
             print(f"Score: {score}")
             print(f"Response: {response}\n")
 
-        context_file_location = f'{self.model_name.replace(".", "_")}_len_{context_length}_depth_{int(depth_percent * 100)}'
+        context_file_location = f'{self.model_name.replace(".", "_")}_len_{context_length}_depth_{int(depth_percent * 100)}_trial_{trial_num}'
 
         if self.save_contexts:
             results["file_name"] = context_file_location
@@ -256,7 +257,7 @@ class LLMNeedleHaystackTester:
         if self.seconds_to_sleep_between_completions:
             await asyncio.sleep(self.seconds_to_sleep_between_completions)
 
-    def result_exists(self, context_length, depth_percent):
+    def result_exists(self, context_length, depth_percent, trial_num):
         """
         Checks to see if a result has already been evaluated or not
         """
@@ -273,11 +274,13 @@ class LLMNeedleHaystackTester:
                     depth_percent_met = result["depth_percent"] == depth_percent
                     version_met = result.get("version", 1) == self.results_version
                     model_met = result["model"] == self.model_name
+                    trial_num_met = result["trial_num"] == trial_num
                     if (
                         context_length_met
                         and depth_percent_met
                         and version_met
                         and model_met
+                        and trial_num_met
                     ):
                         return True
         return False
@@ -375,7 +378,7 @@ class LLMNeedleHaystackTester:
             print(f"- Needle: {self.needle.strip()}")
         print("\n\n")
 
-    def start_test(self):
+    def start_test(self, trial_num: int = 1):
         if self.print_ongoing_status:
             self.print_start_test_summary()
-        asyncio.run(self.run_test())
+        asyncio.run(self.run_test(trial_num=trial_num))
